@@ -21,5 +21,6 @@ namespace ECinema.Web.Models.Domain
 
 
         public virtual ICollection<TicketInShoppingCart> TicketInShoppingCarts { get; set; }
+        public IEnumerable<TicketInOrder> TicketInOrders { get; set; }
     }
 }
