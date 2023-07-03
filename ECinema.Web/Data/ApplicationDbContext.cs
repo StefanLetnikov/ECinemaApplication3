@@ -18,6 +18,8 @@ namespace ECinema.Web.Data
         public virtual DbSet<Ticket> Tickets { get; set; }
         public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public virtual DbSet<TicketInShoppingCart> TicketInShoppingCarts { get; set; }
+        public virtual DbSet<TicketInOrder> TicketInOrders { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -51,6 +53,21 @@ namespace ECinema.Web.Data
                 .HasOne<ECinemaApplicationUser>(z => z.Owner)
                 .WithOne(z => z.UserCart)
                 .HasForeignKey<ShoppingCart>(z => z.OwnerId);
+
+
+            builder.Entity<TicketInOrder>()
+                .HasKey(z => new { z.TicketId, z.OrderId });
+
+            builder.Entity<TicketInOrder>()
+                .HasOne(z => z.OrderedTicket)
+                .WithMany(z => z.TicketInOrders)
+                .HasForeignKey(z => z.OrderId);
+
+            builder.Entity<TicketInOrder>()
+                .HasOne(z => z.UserOrder)
+                .WithMany(z => z.TicketInOrders)
+                .HasForeignKey(z => z.TicketId);
+
 
         }
 

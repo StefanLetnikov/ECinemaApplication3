@@ -4,14 +4,16 @@ using ECinema.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ECinema.Web.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230703155046_AddedNewModels")]
+    partial class AddedNewModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +34,7 @@ namespace ECinema.Web.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Order");
                 });
 
             modelBuilder.Entity("ECinema.Web.Models.Domain.ShoppingCart", b =>
@@ -94,7 +96,7 @@ namespace ECinema.Web.Data.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("TicketInOrders");
+                    b.ToTable("TicketInOrder");
                 });
 
             modelBuilder.Entity("ECinema.Web.Models.Domain.TicketInShoppingCart", b =>

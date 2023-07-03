@@ -1,5 +1,7 @@
 ﻿using ECinema.Web.Models.Domain;
 using Microsoft.AspNetCore.Identity;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace ECinema.Web.Models.Identity
 {
@@ -10,5 +12,6 @@ namespace ECinema.Web.Models.Identity
         public string Address { get; set; }
 
         public virtual ShoppingCart UserCart { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }
