@@ -1,5 +1,9 @@
-using ECinema.Web.Data;
-using ECinema.Web.Models.Identity;
+using ECinema.Domain.Identity;
+using ECinema.Repository;
+using ECinema.Repository.Implementation;
+using ECinema.Repository.Interface;
+using ECinema.Services.Implementation;
+using ECinema.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -33,6 +37,12 @@ namespace ECinema.Web
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<ECinemaApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
+
+            services.AddTransient<ITicketService, TicketService>();
+
             services.AddControllersWithViews();
             services.AddRazorPages();
         }

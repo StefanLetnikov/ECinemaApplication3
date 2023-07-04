@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ECinema.Web.Models.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -7,8 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using ECinema.Web.Models.Identity;
-using ECinema.Web.Models.DTO;
+using ECinema.Domain.Identity;
+using ECinema.Domain.DomainModels;
+using ECinema.Domain.DTO;
 
 namespace EShop.Web.Controllers
 {

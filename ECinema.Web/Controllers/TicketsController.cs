@@ -5,85 +5,67 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ECinema.Web.Data;
-using ECinema.Web.Models.Domain;
-using ECinema.Web.Models.DTO;
 using System.Security.Claims;
+using ECinema.Repository;
+using ECinema.Domain.DTO;
+using ECinema.Domain.DomainModels;
+using ECinema.Services.Interface;
 
 namespace ECinema.Web.Controllers
 {
     public class TicketsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ITicketService _ticketService;
 
-        public TicketsController(ApplicationDbContext context)
+        public TicketsController(ITicketService ticketService)
         {
-            _context = context;
+            _ticketService = ticketService;
         }
 
         // GET: Tickets
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Tickets.ToListAsync());
+            var allTickets = this._ticketService.GetAllTickets();
+            return View(allTickets);
         }
-        
+
 
         //Tickets/AddTicketToCart
-        public async Task<IActionResult> AddTicketToCart(Guid? id)
+        public IActionResult AddTicketToCart(Guid? id)
         {
-            var ticket = await _context.Tickets.Where(z => z.Id.Equals(id)).FirstOrDefaultAsync();
-            AddToShoppingCardDto model = new AddToShoppingCardDto
-            {
-                SelectedTicket = ticket,
-                TicketId = ticket.Id,
-                Quantity = 1
-            };
+           var model = this._ticketService.GetShoppingCartInfo(id);
             return View(model);
         }
 
         //Add to cart post akcija
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddTicketToCart([Bind("TicketId","Quantity")]AddToShoppingCardDto item)
+        public IActionResult AddTicketToCart([Bind("TicketId", "Quantity")] AddToShoppingCartDto item)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var userShoppingCart = await _context.ShoppingCarts.Where(z => z.OwnerId.Equals(userId)).FirstOrDefaultAsync();
+            var result = this._ticketService.AddToShoppingCart(item, userId);
 
-            if(item.TicketId != null && userShoppingCart != null)
+            if (result)
             {
-                var ticket = await _context.Tickets.Where(z => z.Id.Equals(item.TicketId)).FirstOrDefaultAsync();
-                if(ticket != null)
-                {
-                    TicketInShoppingCart itemToAdd = new TicketInShoppingCart
-                    {
-                        Ticket = ticket,
-                        TicketId = ticket.Id,
-                        ShoppinhCart = userShoppingCart,
-                        ShoppingCartId = userShoppingCart.Id,
-                        Quantity = item.Quantity,
-                    };
-
-                    _context.Add(itemToAdd);
-                    await _context.SaveChangesAsync();
-                }
-                return RedirectToAction("Index","Tickets");
+                return RedirectToAction("Index", "Tickets");
             }
+
             return View(item);
         }
 
 
 
         // GET: Tickets/Details/5
-        public async Task<IActionResult> Details(Guid? id)
+        public IActionResult Details(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = this._ticketService.GetDetailsForTicket(id);
+
             if (ticket == null)
             {
                 return NotFound();
@@ -103,27 +85,27 @@ namespace ECinema.Web.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,MovieName,MovieDescription,MovieRating,TicketPrice,MovieImage")] Ticket ticket)
+        public IActionResult Create([Bind("Id,MovieName,MovieDescription,MovieRating,TicketPrice,MovieImage")] Ticket ticket)
         {
             if (ModelState.IsValid)
             {
-                ticket.Id = Guid.NewGuid();
-                _context.Add(ticket);
-                await _context.SaveChangesAsync();
+                
+                this._ticketService.CreateNewTicket(ticket);
                 return RedirectToAction(nameof(Index));
             }
             return View(ticket);
         }
 
         // GET: Tickets/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        public IActionResult Edit(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets.FindAsync(id);
+            var ticket = this._ticketService.GetDetailsForTicket(id);
+
             if (ticket == null)
             {
                 return NotFound();
@@ -136,7 +118,7 @@ namespace ECinema.Web.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,MovieName,MovieDescription,MovieRating,TicketPrice,MovieImage")] Ticket ticket)
+        public IActionResult Edit(Guid id, [Bind("Id,MovieName,MovieDescription,MovieRating,TicketPrice,MovieImage")] Ticket ticket)
         {
             if (id != ticket.Id)
             {
@@ -147,8 +129,7 @@ namespace ECinema.Web.Controllers
             {
                 try
                 {
-                    _context.Update(ticket);
-                    await _context.SaveChangesAsync();
+                    this._ticketService.UpdateExistingTicket(ticket);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -167,15 +148,15 @@ namespace ECinema.Web.Controllers
         }
 
         // GET: Tickets/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        public IActionResult Delete(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = this._ticketService.GetDetailsForTicket(id);
+
             if (ticket == null)
             {
                 return NotFound();
@@ -187,17 +168,15 @@ namespace ECinema.Web.Controllers
         // POST: Tickets/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public IActionResult DeleteConfirmed(Guid id)
         {
-            var ticket = await _context.Tickets.FindAsync(id);
-            _context.Tickets.Remove(ticket);
-            await _context.SaveChangesAsync();
+            this._ticketService.DeleteTicket(id);
             return RedirectToAction(nameof(Index));
         }
 
         private bool TicketExists(Guid id)
         {
-            return _context.Tickets.Any(e => e.Id == id);
+            return this._ticketService.GetDetailsForTicket(id) != null;
         }
     }
 }
