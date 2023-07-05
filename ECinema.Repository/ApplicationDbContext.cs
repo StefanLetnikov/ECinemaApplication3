@@ -52,8 +52,8 @@ namespace ECinema.Repository
                 .WithOne(z => z.UserCart)
                 .HasForeignKey<ShoppingCart>(z => z.OwnerId);
 
-            builder.Entity<TicketInOrder>()
-                .HasKey(z => new { z.TicketId, z.OrderId });
+            /*builder.Entity<TicketInOrder>()
+                .HasKey(z => new { z.TicketId, z.OrderId });*/
 
             builder.Entity<TicketInOrder>()
                 .HasOne(z => z.OrderedTicket)

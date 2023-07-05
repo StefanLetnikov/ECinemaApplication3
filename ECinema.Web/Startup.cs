@@ -42,6 +42,7 @@ namespace ECinema.Web
             services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
 
             services.AddTransient<ITicketService, TicketService>();
+            services.AddTransient<IShoppingCartService, ShoppingCartService>();
 
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -74,6 +75,8 @@ namespace ECinema.Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
                 endpoints.MapRazorPages();
             });
         }

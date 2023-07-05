@@ -1,6 +1,7 @@
 ﻿using ECinema.Domain.DomainModels;
 using ECinema.Domain.DTO;
 using ECinema.Repository;
+using ECinema.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.EntityFrameworkCore;
@@ -14,14 +15,14 @@ namespace ECinema.Web.Controllers
 {
     public class ShoppingCartController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IShoppingCartService _shoppingCartService;
 
-        public ShoppingCartController(ApplicationDbContext context)
+        public ShoppingCartController(IShoppingCartService shoppingCartService)
         {
-            _context = context;
+            _shoppingCartService = shoppingCartService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -29,119 +30,44 @@ namespace ECinema.Web.Controllers
                 return RedirectToAction("Index", "Tickets");
             }
 
-
-                var loggedInUser = await _context.Users.Where(z => z.Id == userId)
-                .Include("UserCart")
-                .Include("UserCart.TicketInShoppingCarts")
-                .Include("UserCart.TicketInShoppingCarts.Ticket")
-                .FirstOrDefaultAsync();
-
-
-            var userShoppingCart = loggedInUser.UserCart;
-            var AllTickets = userShoppingCart.TicketInShoppingCarts.ToList();
-
-            var allTicketPrices = AllTickets.Select(z => new {
-                TicketPrice = z.Ticket.TicketPrice,
-                Quantity = z.Quantity
-            }).ToList(); 
-
-            var totalPrice = 0;
-            foreach (var item in allTicketPrices)
-            {
-                totalPrice += item.Quantity * item.TicketPrice;
-            }
-
-            ShoppingCartDto scDto = new ShoppingCartDto
-            {
-                Tickets = AllTickets,
-                TotalPrice = totalPrice
-            };
-
-            return View(scDto);
+            return View(this._shoppingCartService.getShoppingCartInfo(userId));
         }
 
 
-        public async Task<IActionResult> DeleteFromShoppingCart(Guid? id)
+        public IActionResult DeleteFromShoppingCart(Guid id)
         {
 
 
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!string.IsNullOrEmpty(userId) && id != null) 
+            var result = this._shoppingCartService.DeleteTicketFromShoppingCart(userId, id);
+
+            if (result)
             {
-                var loggedInUser = await _context.Users.Where(z => z.Id == userId)
-                .Include("UserCart")
-                .Include("UserCart.TicketInShoppingCarts")
-                .Include("UserCart.TicketInShoppingCarts.Ticket")
-                .FirstOrDefaultAsync();
-
-
-                var userShoppingCart = loggedInUser.UserCart;
-                var itemToDelete = userShoppingCart.TicketInShoppingCarts.Where(z => z.TicketId.Equals(id)).FirstOrDefault();
-
-                userShoppingCart.TicketInShoppingCarts.Remove(itemToDelete);
-
-                _context.Update(userShoppingCart);
-                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "ShoppingCart");
             }
-
-
-            return RedirectToAction("Index", "ShoppingCart");
+            else
+            {
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+            
         }
 
-        public async Task<IActionResult> Order(Guid? id)
+        public IActionResult Order(Guid? id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!string.IsNullOrEmpty(userId))
+            var result = this._shoppingCartService.OrderNow(userId);
+
+            if(result)
             {
-                var loggedInUser = await _context.Users.Where(z => z.Id == userId)
-                .Include("UserCart")
-                .Include("UserCart.TicketInShoppingCarts")
-                .Include("UserCart.TicketInShoppingCarts.Ticket")
-                .FirstOrDefaultAsync();
-
-
-                var userShoppingCart = loggedInUser.UserCart;
-
-                Order order = new Order
-                {
-                    Id = Guid.NewGuid(),
-                    User = loggedInUser,
-                    UserId = userId
-                };
-
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-
-
-                List<TicketInOrder> ticketInOrders = new List<TicketInOrder>();
-
-                var result = userShoppingCart.TicketInShoppingCarts.Select(z => new TicketInOrder {
-                    TicketId = z.Ticket.Id,
-                    OrderedTicket = z.Ticket,
-                    OrderId = order.Id,
-                    UserOrder = order
-                }).ToList();
-
-                ticketInOrders.AddRange(result);
-
-                foreach(var item in ticketInOrders)
-                {
-                    _context.Add(item);
-                   
-                }
-                await _context.SaveChangesAsync();
-
-                loggedInUser.UserCart.TicketInShoppingCarts.Clear();
-                _context.Update(order);
-                await _context.SaveChangesAsync();
-
+                return RedirectToAction("Index", "ShoppingCart");
             }
-
-
-
-            return RedirectToAction("Index", "ShoppingCart");
+            else
+            {
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+            
         }
 
     }
