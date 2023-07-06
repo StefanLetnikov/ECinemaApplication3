@@ -38,7 +38,7 @@ namespace ECinema.Services.Implementation
                     {
                         Ticket = ticket,
                         TicketId = ticket.Id,
-                        ShoppinhCart = userShoppingCart,
+                        ShoppingCart = userShoppingCart,
                         ShoppingCartId = userShoppingCart.Id,
                         Quantity = item.Quantity,
                     };

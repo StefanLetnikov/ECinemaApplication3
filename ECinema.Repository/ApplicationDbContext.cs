@@ -43,7 +43,7 @@ namespace ECinema.Repository
                 .HasForeignKey(z => z.ShoppingCartId);
 
             builder.Entity<TicketInShoppingCart>()
-                .HasOne(z => z.ShoppinhCart)
+                .HasOne(z => z.ShoppingCart)
                 .WithMany(z => z.TicketInShoppingCarts)
                 .HasForeignKey(z => z.TicketId);
 

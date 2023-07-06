@@ -34,7 +34,7 @@ namespace ECinema.Services.Implementation
 
 
                 var userShoppingCart = loggedInUser.UserCart;
-                var itemToDelete = userShoppingCart.TicketInShoppingCarts.Where(z => z.TicketId.Equals(id)).FirstOrDefault();
+                var itemToDelete = userShoppingCart.TicketInShoppingCarts.Where(z => z.Ticket.Id.Equals(id)).FirstOrDefault();
 
                 userShoppingCart.TicketInShoppingCarts.Remove(itemToDelete);
 

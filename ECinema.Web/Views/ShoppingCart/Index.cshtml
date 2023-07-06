@@ -41,7 +41,7 @@
                             <td>@item.Ticket.MovieName</td>
                             <td>@item.Quantity</td>
                             <td>$@item.Ticket.TicketPrice</td>
-                            <td><a asp-controller="ShoppingCart" asp-action="DeleteFromShoppingCart" asp-route-id="@item.TicketId" class="btn btn-danger">Delete From ShoppingCart</a></td>
+                            <td><a asp-controller="ShoppingCart" asp-action="DeleteFromShoppingCart" asp-route-id="@item.Ticket.Id" class="btn btn-danger">Delete From ShoppingCart</a></td>
                         </tr>
                     }
                 }
